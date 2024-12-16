@@ -1,0 +1,48 @@
+{
+  "name": "airhub",
+  "version": "1.0.0",
+  "description": "An airport management system with flight and booking management features.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/luiscuriel-bit/airhub-back-end.git"
+  },
+  "keywords": [
+    "airport",
+    "flight",
+    "booking",
+    "management",
+    "system",
+    "nodejs",
+    "express",
+    "mongoose",
+    "mongodb",
+    "api",
+    "backend",
+    "reservation",
+    "passenger",
+    "staff",
+    "admin",
+    "airlines",
+    "travel",
+    "scheduling",
+    "RESTful",
+    "CRUD"
+  ],
+  "author": "Team AirHub",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/luiscuriel-bit/airhub-back-end/issues"
+  },
+  "homepage": "https://github.com/luiscuriel-bit/airhub-back-end#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.9.0"
+  }
+}
