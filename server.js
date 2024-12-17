@@ -4,7 +4,8 @@ const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
 
-const usersRoute = require('./routes/users');
+const authRoutes = require('./routes/authRoutes');
+const flightRoutes = require('./routes/flightRoutes');
 
 
 
@@ -18,7 +19,12 @@ mongoose.connection.on('connected', () => {
 app.use(cors());
 app.use(express.json());
 
-app.use('/users', usersRoute);
+
+
+app.use('/auth', authRoutes);
+app.use('/flights', flightRoutes);
+
+
 
 const port = process.env.PORT || 3000;
 app.listen(port, (req, res) => {
