@@ -32,7 +32,6 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['admin', 'staff', 'passenger'],
     default: 'passenger',
-
   },
   assignedFlights: {
     type: mongoose.Schema.Types.ObjectId,
@@ -43,5 +42,11 @@ const userSchema = new mongoose.Schema({
     ref: 'Booking',
   }
 }, { timestamps: true });
+
+userSchema.set('toJSON', {
+  transform: (document, returnedObject) => {
+    delete returnedObject.password;
+  }
+});
 
 module.exports = mongoose.model('User', userSchema);
