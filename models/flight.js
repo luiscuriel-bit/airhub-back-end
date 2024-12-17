@@ -4,7 +4,6 @@ const flightSchema = new mongoose.Schema({
     flightNumber: {
         type: String,
         required: true,
-        unique: true,
     },
     origin: {
         type: String,
@@ -39,14 +38,14 @@ const flightSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
-    passengers: {
+    passengers: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-    },
-    staff: {
+    }],
+    staff: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-    },
+    }],
 }, { timestamps: true });
 
 const Flight = mongoose.model('Flight', flightSchema);
