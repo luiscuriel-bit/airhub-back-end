@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
 
 const authRoutes = require('./routes/authRoutes');
 const flightRoutes = require('./routes/flightRoutes');
-
+const bookingRoutes = require('./routes/bookingRoutes');
 
 
 mongoose.connect(process.env.MONGODB_URI);
@@ -23,6 +23,7 @@ app.use(express.json());
 
 app.use('/auth', authRoutes);
 app.use('/flights', flightRoutes);
+app.use('/bookings', bookingRoutes);
 
 
 
