@@ -26,7 +26,7 @@ const signup = async (req, res) => {
       process.env.JWT_SECRET
     );
 
-    res.status(201).json({ user, token, message: 'Registration successful.' });
+    res.status(201).json({ token, message: 'Registration successful.' });
   } catch (error) {
     res.status(500).json({ message: 'An error ocurred during registration.' });
   }
@@ -50,7 +50,7 @@ const signin = async (req, res) => {
         process.env.JWT_SECRET
       );
 
-      res.status(200).json({ user, token, message: 'Login successful.' });
+      res.status(200).json({ token, message: 'Login successful.' });
     }
     else {
       res.status(401).json({ message: 'Invalid username or password.' });
