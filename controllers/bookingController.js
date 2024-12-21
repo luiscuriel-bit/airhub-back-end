@@ -45,16 +45,15 @@ const createBooking = async (req, res) => {
 // Get All Bookings. Learned from ChatGPT that this .populate method replaces the ObjectId with the actual data from the referenced collection.
 const getAllBookings = async (req, res) => {
     try {
-        const bookings = await Booking.find()
-            .populate('flight')
-            .populate('passenger', '_id firstName lastName email');
+        const bookings = await Booking.find({ passenger: req.user._id }) // Only fetch bookings for the logged-in user
+            .populate('flight', 'flightNumber origin destination')
+            .populate('passenger', 'username firstName lastName email');
 
         res.status(200).json(bookings);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: 'An error occurred while fetching bookings.' });
     }
 };
-
 // Get Booking by ID
 const getBookingById = async (req, res) => {
     try {
