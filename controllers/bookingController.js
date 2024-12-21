@@ -45,7 +45,7 @@ const getAllBookings = async (req, res) => {
     try {
         const bookings = await Booking.find()
             .populate('flight')
-            .populate('passenger', '_id firstName lastName email');
+            .populate('passenger');
 
         res.status(200).json(bookings);
     } catch (error) {
@@ -58,8 +58,7 @@ const getBookingById = async (req, res) => {
     try {
         const booking = await Booking.findById(req.params.bookingId)
             .populate('flight')
-            .populate('passenger', '_id firstName lastName email');
-
+            .populate('passenger');
         if (!booking) {
             return res.status(404).json({ message: 'Booking not found.' });
         }
@@ -96,9 +95,9 @@ const deleteBooking = async (req, res) => {
             return res.status(404).json({ message: 'Booking not found.' });
         }
 
-        res.status(200).json({ message: 'Booking deleted successfully.' });
+        res.status(200).json(booking);
     } catch (error) {
-        res.status(500).json({ message: 'An error occurred while deleting the booking.' });
+        res.status(500).json({ message: error.message });
     }
 };
 

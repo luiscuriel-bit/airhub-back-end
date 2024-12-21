@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 
 function verifyAdmin(req, res, next) {
     try {
-        if (req.user.role !== 'Admin') {
+        if (req.user.role !== 'admin') {
             return res.status(403).json({ message: 'Access denied. Admin privileges required.' });
         }
         next();
