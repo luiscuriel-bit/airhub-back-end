@@ -88,30 +88,4 @@ const updateUser = async (req, res) => {
   }
 };
 
-//This is to change the password from the profile
-const changePassword = async (req, res) => {
-  try {
-    const { oldPassword, newPassword } = req.body;
-    const userId = req.user._id;
-
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found.' });
-    }
-
-    const isMatch = bcrypt.compareSync(oldPassword, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Old password is incorrect.' });
-    }
-
-    user.password = bcrypt.hashSync(newPassword, SALT_LENGTH);
-    await user.save();
-
-    res.status(200).json({ message: 'Password updated successfully.' });
-  } catch (error) {
-    console.error('Error changing password:', error.message);
-    res.status(500).json({ message: 'An error occurred while changing the password.' });
-  }
-};
-
-module.exports = { signup, signin, updateUser, changePassword };
+module.exports = { signup, signin, updateUser };
