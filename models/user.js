@@ -32,7 +32,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['admin', 'staff', 'passenger'],
+    enum: ['admin', 'passenger'],
     default: 'passenger',
   },
   assignedFlights: {
