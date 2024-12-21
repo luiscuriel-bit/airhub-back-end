@@ -7,6 +7,7 @@ const mongoose = require('mongoose');
 const authRoutes = require('./routes/authRoutes');
 const flightRoutes = require('./routes/flightRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
+const verifyToken = require('./middleware/verify-token');
 
 
 mongoose.connect(process.env.MONGODB_URI);
@@ -23,6 +24,8 @@ app.use(express.json());
 
 app.use('/auth', authRoutes);
 app.use('/flights', flightRoutes);
+
+app.use(verifyToken);
 app.use('/bookings', bookingRoutes);
 
 
