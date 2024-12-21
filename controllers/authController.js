@@ -21,6 +21,8 @@ const signup = async (req, res) => {
       _id: user._id,
       username: user.username,
       firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
       role: user.role,
     },
       process.env.JWT_SECRET
@@ -45,6 +47,8 @@ const signin = async (req, res) => {
         _id: user._id,
         username: user.username,
         firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
         role: user.role,
       },
         process.env.JWT_SECRET

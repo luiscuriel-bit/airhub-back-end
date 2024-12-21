@@ -5,12 +5,13 @@ const verifyToken = require('../middleware/verify-token');
 
 
 router.get('/', flightController.getAllflights);
+router.post('/search', flightController.searchFlights);
 
 router.get('/:flightId', flightController.getFlightById);
 
+router.post('/', flightController.createFlight);
 router.use(verifyToken);
 
-router.post('/', flightController.createFlight);
 
 router.put('/:flightId', flightController.updateFlight);
 

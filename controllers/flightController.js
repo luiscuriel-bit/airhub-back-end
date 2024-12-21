@@ -23,7 +23,6 @@ const getFlightById = async (req, res) => {
 
 const createFlight = async (req, res) => {
     try {
-        console.log('Incoming Request Body:', req.body);
         const newFlight = await Flight.create(req.body);
         res.status(201).json(newFlight);
     } catch (error) {
@@ -60,8 +59,23 @@ const deleteFlight = async (req, res) => {
     }
 };
 
-module.exports = {
-    getAllflights, getFlightById, createFlight, updateFlight, deleteFlight,
+const searchFlights = async (req, res) => {
+    try {
+        if (req.body.departureTime){
+            req.body.departureTime = {$gte: req.body.departureTime}
+        }
+        const flights = await Flight.find(req.body);
+
+        if (!flights.length) {
+            return res.status(404).json({ message: 'No flights match your criteria.' });
+        }
+
+        return res.status(200).json(flights);
+    } catch (error) {
+        res.status(500).json({ message: 'An error occurred while searching for flights.' });
+    }
 };
 
-//in getFlightsbyId i changed "return res.json(404).json" to " return res.status(404).json" we were calling it twice and it threw an error in my postman testing.
+module.exports = {
+    getAllflights, getFlightById, createFlight, updateFlight, deleteFlight, searchFlights
+};
