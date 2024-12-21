@@ -1,7 +1,6 @@
 const Booking = require('../models/booking');
 const Flight = require('../models/flight');
 const User = require('../models/user');
-const flightController = require('./flightController');
 
 // Create a New Booking
 const createBooking = async (req, res) => {
@@ -28,8 +27,7 @@ const createBooking = async (req, res) => {
 
         req.body.passengers.push(req.user._id);
         req.body.availableSeats -= 1;
-        console.log(req.body)
-        const updatedFlight = await Flight.findByIdAndUpdate(req.params._id, {
+        const updatedFlight = await Flight.findByIdAndUpdate(req.body._id, {
             passengers: req.body.passengers,
             availableSeats: req.body.availableSeats,
         }, {
