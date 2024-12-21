@@ -1,7 +1,6 @@
 const Booking = require('../models/booking');
 const Flight = require('../models/flight');
 const User = require('../models/user');
-const flightController = require('./flightController');
 
 // Create a New Booking
 const createBooking = async (req, res) => {
@@ -28,8 +27,7 @@ const createBooking = async (req, res) => {
 
         req.body.passengers.push(req.user._id);
         req.body.availableSeats -= 1;
-        console.log(req.body)
-        const updatedFlight = await Flight.findByIdAndUpdate(req.params._id, {
+        const updatedFlight = await Flight.findByIdAndUpdate(req.body._id, {
             passengers: req.body.passengers,
             availableSeats: req.body.availableSeats,
         }, {
@@ -45,9 +43,9 @@ const createBooking = async (req, res) => {
 // Get All Bookings. Learned from ChatGPT that this .populate method replaces the ObjectId with the actual data from the referenced collection.
 const getAllBookings = async (req, res) => {
     try {
-        const bookings = await Booking.find({ passenger: req.user._id }) // Only fetch bookings for the logged-in user
-            .populate('flight', 'flightNumber origin destination')
-            .populate('passenger', 'username firstName lastName email');
+        const bookings = await Booking.find({ passenger: req.user._id })
+            .populate('flight')
+            .populate('passenger');
 
         res.status(200).json(bookings);
     } catch (error) {
@@ -59,8 +57,7 @@ const getBookingById = async (req, res) => {
     try {
         const booking = await Booking.findById(req.params.bookingId)
             .populate('flight')
-            .populate('passenger', '_id firstName lastName email');
-
+            .populate('passenger');
         if (!booking) {
             return res.status(404).json({ message: 'Booking not found.' });
         }
@@ -97,9 +94,9 @@ const deleteBooking = async (req, res) => {
             return res.status(404).json({ message: 'Booking not found.' });
         }
 
-        res.status(200).json({ message: 'Booking deleted successfully.' });
+        res.status(200).json(booking);
     } catch (error) {
-        res.status(500).json({ message: 'An error occurred while deleting the booking.' });
+        res.status(500).json({ message: error.message });
     }
 };
 
