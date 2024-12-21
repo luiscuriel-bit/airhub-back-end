@@ -18,8 +18,8 @@ const createBooking = async (req, res) => {
 
         const passenger = User.findByIdAndUpdate(
             req.user._id,
-            { $push: { bookings: booking._id } }, // Añadir el vuelo al array
-            { new: true } // Devuelve el documento actualizado
+            { $push: { bookings: booking._id } }, 
+            { new: true } 
         );
         if (!passenger) {
             return res.status(404).json({ message: 'Passenger not found.' });
