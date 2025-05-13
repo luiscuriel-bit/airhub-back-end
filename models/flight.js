@@ -4,6 +4,7 @@ const flightSchema = new mongoose.Schema({
     flightNumber: {
         type: String,
         required: true,
+        trim: true,
     },
     origin: {
         type: String,
@@ -37,6 +38,7 @@ const flightSchema = new mongoose.Schema({
     price: {
         type: Number,
         required: true,
+        min: 0,
     },
     passengers: [{
         type: mongoose.Schema.Types.ObjectId,

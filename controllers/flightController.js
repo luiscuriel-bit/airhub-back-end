@@ -1,11 +1,12 @@
 const Flight = require('../models/flight');
+const { sendSuccess, sendError } = require('../utils/responseHandler');
 
 const getAllflights = async (req, res) => {
     try {
         const flights = await Flight.find();
-        res.status(200).json(flights)
+        return sendSuccess(res, 200, flights);
     } catch (error) {
-        res.status(500).json({ message: 'An error ocurred while fetching flights.' });
+        return sendError(res, 500, error);
     }
 };
 
@@ -13,35 +14,36 @@ const getFlightById = async (req, res) => {
     try {
         const flight = await Flight.findById(req.params.flightId);
         if (!flight) {
-            return res.status(404).json({ message: 'Flight not found' });
+            return sendError(res, 404, new Error('Flight not found'));
         }
-        return res.status(200).json(flight);
+        return sendSuccess(res, 200, flight);
     } catch (error) {
-        res.status(500).json({ message: 'An error ocurred while fetching the flight.' });
+        return sendError(res, 500, error);
     }
 };
 
 const createFlight = async (req, res) => {
     try {
-        const newFlight = await Flight.create(req.body);
-        res.status(201).json(newFlight);
+        const { flightNumber, origin, destination, departureTime, arrivalTime, availableSeats, status, price } = req.body;
+        const newFlight = await Flight.create({ flightNumber, origin, destination, departureTime, arrivalTime, availableSeats, status, price });
+        return sendSuccess(res, 201, newFlight);
     } catch (error) {
-        res.status(500).json({ error: 'An error ocurred while creating the flight.' })
+        return sendError(res, 500, error);
     }
 };
 
 const updateFlight = async (req, res) => {
     try {
         const updatedFlight = await Flight.findByIdAndUpdate(req.params.flightId, req.body, {
-            new: true,
+            new: true, runValidators: true,
         });
 
         if (!updatedFlight) {
-            return res.status(404).json({ message: 'Flight not found' });
+            return sendError(res, 404, new Error('Flight not found'));
         }
-        res.status(200).json(updatedFlight);
+        return sendSuccess(res, 200, updatedFlight);
     } catch (error) {
-        res.status(500).json({ message: 'An error ocurred while updating the flight.' });
+        return sendError(res, 500, error);
     }
 };
 
@@ -50,32 +52,56 @@ const deleteFlight = async (req, res) => {
         const deletedFlight = await Flight.findByIdAndDelete(req.params.flightId);
 
         if (!deletedFlight) {
-            return res.status(404).json({ message: 'Flight not found.' })
+            return sendError(res, 404, new Error('Flight not found.'));
         }
-
-        res.status(200).json({ message: 'Flight successfully deleted.' });
+        return sendSuccess(res, 200, { message: 'Flight successfully deleted.' });
     } catch (error) {
-        res.status(500).json({ message: 'An error ocurred while deleting the flight.' });
+        return sendError(res, 500, error);
     }
 };
 
 const searchFlights = async (req, res) => {
     try {
-        if (req.body.departureTime){
-            req.body.departureTime = {$gte: req.body.departureTime}
+        const query = { ...req.body };
+
+        if (query.departureStart || query.departureEnd) {
+            const departureQuery = {};
+
+            if (query.departureStart) {
+                const start = new Date(query.departureStart);
+                start.setHours(0, 0, 0, 0); // Start of day
+                departureQuery.$gte = start;
+            }
+
+            if (query.departureEnd) {
+                const end = new Date(query.departureEnd);
+                end.setHours(23, 59, 59, 999); // End of day
+                departureQuery.$lte = end;
+            }
+
+            query.departureTime = departureQuery;
+
+            delete query.departureStart;
+            delete query.departureEnd;
         }
-        const flights = await Flight.find(req.body);
+
+        const flights = await Flight.find(query);
 
         if (!flights.length) {
-            return res.status(404).json({ message: 'No flights match your criteria.' });
+            return sendError(res, 404, new Error('No flights match your criteria.'));
         }
 
-        return res.status(200).json(flights);
+        return sendSuccess(res, 200, flights);
     } catch (error) {
-        res.status(500).json({ message: 'An error occurred while searching for flights.' });
+        return sendError(res, 500, error);
     }
 };
 
 module.exports = {
-    getAllflights, getFlightById, createFlight, updateFlight, deleteFlight, searchFlights
+    getAllflights,
+    getFlightById,
+    createFlight,
+    updateFlight,
+    deleteFlight,
+    searchFlights,
 };

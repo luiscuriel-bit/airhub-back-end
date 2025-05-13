@@ -1,91 +1,209 @@
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const { generateAccessToken, generateRefreshToken } = require('../utils/tokenUtils');
+const { sendSuccess, sendError } = require('../utils/responseHandler');
 
 const SALT_LENGTH = 12;
 
 const signup = async (req, res) => {
-  try {
-    const existingUser = await User.findOne({ username: req.body.username });
+    try {
+        const existingUser = await User.findOne({ username: req.body.username });
 
-    if (existingUser) {
-      return res.status(400).json({ message: 'Username is already in use.' });
+        if (existingUser) {
+            return sendError(res, 400, new Error('Username is already in use.'));
+        }
+
+        const { username, firstName, lastName, email, password, role } = req.body;
+
+        const user = await User.create({
+            username, firstName, lastName, email, role,
+            password: bcrypt.hashSync(password, SALT_LENGTH),
+        });
+
+
+        const accessToken = generateAccessToken(user);
+        // Set access token as HttpOnly cookie
+        res.cookie('accessToken', accessToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'None',
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+
+        const refreshToken = generateRefreshToken(user);
+        // Set refresh token as HttpOnly cookie
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'None',
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+
+        return sendSuccess(res, 201, {
+            user: {
+                id: user.id,
+                username: user.username,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                role: user.role,
+            }
+        });
+    } catch (error) {
+        return sendError(res, 500, error);
     }
-
-    const user = await User.create({
-      ...req.body,
-      password: bcrypt.hashSync(req.body.password, SALT_LENGTH),
-    });
-
-    const token = jwt.sign({
-      _id: user._id,
-      username: user.username,
-      firstName: user.firstName,
-      lastName: user.lastName, // I added the last name and email here so it could be included in the profile page
-      email: user.email, 
-      role: user.role,
-    },
-      process.env.JWT_SECRET
-    );
-
-    res.status(201).json({ token, message: 'Registration successful.' });
-  } catch (error) {
-    res.status(500).json({ message: 'An error ocurred during registration.' });
-  }
 };
 
 const signin = async (req, res) => {
-  try {
-    const user = await User.findOne({ username: req.body.username });
+    try {
+        const user = await User.findOne({ username: req.body.username });
 
-    if (!user) {
-      return res.status(404).json({ message: 'User not found.' });
-    }
+        if (!user) {
+            return sendError(res, 404, new Error('User not found.'));
+        }
+        if (!bcrypt.compareSync(req.body.password, user.password)) {
+            return sendError(res, 401, new Error('Invalid username or password.'));
+        }
 
-    if (bcrypt.compareSync(req.body.password, user.password)) {
-      const token = jwt.sign({
-        _id: user._id,
-        username: user.username,
-        firstName: user.firstName,
-        lastName: user.lastName, // I added the last name and email here so it could be included in the profile page
-        email: user.email, 
-        role: user.role,
-      },
-        process.env.JWT_SECRET
-      );
+        const accessToken = generateAccessToken(user);
+        // Set access token as HttpOnly cookie
+        res.cookie('accessToken', accessToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'None',
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        });
 
-      res.status(200).json({ token, message: 'Login successful.' });
+        const refreshToken = generateRefreshToken(user);
+        // Set refresh token as HttpOnly cookie
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'None',
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        });
+
+        return sendSuccess(res, 200, {
+            user: {
+                id: user.id,
+                username: user.username,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                role: user.role,
+            },
+        });
+    } catch (error) {
+        return sendError(res, 500, error);
     }
-    else {
-      res.status(401).json({ message: 'Invalid username or password.' });
-    }
-  } catch (error) {
-    res.status(500).json({ message: 'An error ocurred during login.' });
-  }
 };
 
+const refreshToken = async (req, res) => {
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) {
+        return sendError(res, 401, new Error('Refresh token required'));
+    }
 
-//This is for the profile update endpoint.
+    jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, async (err, decoded) => {
+        if (err) {
+            return sendError(
+                res,
+                403,
+                new Error(
+                    err.name === 'TokenExpiredError'
+                        ? 'Login expired. Please, log in again.'
+                        : 'Invalid token'
+                )
+            );
+        }
+
+        try {
+            const user = await User.findById(decoded.id);
+
+            if (!user) {
+                return sendError(res, 404, new Error('User not found.'));
+            }
+
+            const accessToken = generateAccessToken(user);
+            // Set access token as HttpOnly cookie
+            res.cookie('accessToken', accessToken, {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'None',
+                maxAge: 7 * 24 * 60 * 60 * 1000,
+            });
+
+            const refreshToken = generateRefreshToken(user);
+            // Set refresh token as HttpOnly cookie
+            res.cookie('refreshToken', refreshToken, {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'None',
+                maxAge: 7 * 24 * 60 * 60 * 1000,
+            });
+
+            return sendSuccess(res, 200, {
+                user: {
+                    id: user.id,
+                    username: user.username,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    email: user.email,
+                    role: user.role,
+                },
+            });
+        } catch (error) {
+            return sendError(res, 500, error);
+        }
+    });
+};
+
+const signout = (req, res) => {
+    res.clearCookie('accessToken', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'None',
+        maxAge: 0,
+    });
+    res.clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'None',
+        maxAge: 0,
+    });
+    return sendSuccess(res, 200, { message: 'Logged out successfully' });
+};
+
 const updateUser = async (req, res) => {
-  try {
-    const { username, firstName, lastName, email } = req.body;
-    const userId = req.user._id; 
+    try {
+        const { username, firstName, lastName, email } = req.body;
+        const userId = req.user.id;
 
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      { username, firstName, lastName, email },
-      { new: true, runValidators: true }
-    );
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { username, firstName, lastName, email },
+            { new: true, runValidators: true }
+        );
 
-    if (!updatedUser) {
-      return res.status(404).json({ message: 'User not found.' });
+        if (!updatedUser) {
+            return sendError(res, 404, new Error('User not found.'));
+        }
+        return sendSuccess(res, 200, updatedUser);
+    } catch (error) {
+        if (error.name === 'ValidationError') {
+            return sendError(res, 400, new Error('Invalid input. Please check the data you submitted.'));
+        }
+
+        console.error('Error updating user:', error.message);
+        return sendError(res, 500, error);
     }
-
-    res.status(200).json(updatedUser);
-  } catch (error) {
-    console.error('Error updating user:', error.message);
-    res.status(500).json({ message: 'An error occurred while updating user profile.' });
-  }
 };
 
-module.exports = { signup, signin, updateUser };
+module.exports = {
+    signup,
+    signin,
+    refreshToken,
+    signout,
+    updateUser,
+};

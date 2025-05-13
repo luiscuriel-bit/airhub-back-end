@@ -7,19 +7,13 @@ const {
     updateBooking,
     deleteBooking
 } = require('../controllers/bookingController');
+const verifyToken = require('../middleware/verify-token');
+
+router.use(verifyToken);
 
 router.post('/', createBooking);
-
-
 router.get('/', getAllBookings);
-
-
 router.get('/:bookingId', getBookingById);
-
-
-router.put('/:bookingId', updateBooking);
-
-
 router.delete('/:bookingId', deleteBooking);
 
 module.exports = router;

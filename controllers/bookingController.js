@@ -1,88 +1,69 @@
 const Booking = require('../models/booking');
 const Flight = require('../models/flight');
 const User = require('../models/user');
+const { sendSuccess, sendError } = require('../utils/responseHandler');
 
-// Create a New Booking
 const createBooking = async (req, res) => {
     try {
-        if (!req.body.availableSeats) {
-            return res.status(409).json(({ message: 'No available seats' }));
+        const { flightId } = req.body;
+
+        if (!flightId) {
+            return sendError(res, 400, new Error('Flight ID is required.'));
         }
 
-        // Create a new booking. booking.create will add the booking to our database
+        const flight = await Flight.findById(flightId);
+        if (!flight) {
+            return sendError(res, 404, new Error('Flight not found.'));
+        }
+
+        if (flight.availableSeats <= 0) {
+            return sendError(res, 409, new Error('No available seats on this flight.'));
+        }
+
         const booking = await Booking.create({
-            flight: req.body._id,
-            passenger: req.user._id,
-            seatNumber: req.body.passengers.length + 1,
+            flight: flight._id,
+            passenger: req.user.id,
+            seatNumber: (flight.passengers.length + 1).toString(),
         });
 
-        const passenger = User.findByIdAndUpdate(
-            req.user._id,
-            { $push: { bookings: booking._id } }, 
-            { new: true } 
+        flight.passengers.push(req.user.id);
+        flight.availableSeats -= 1;
+        await flight.save();
+
+        await User.findByIdAndUpdate(
+            req.user.id,
+            { $push: { bookings: booking._id } },
+            { new: true }
         );
-        if (!passenger) {
-            return res.status(404).json({ message: 'Passenger not found.' });
-        }
 
-        req.body.passengers.push(req.user._id);
-        req.body.availableSeats -= 1;
-        const updatedFlight = await Flight.findByIdAndUpdate(req.body._id, {
-            passengers: req.body.passengers,
-            availableSeats: req.body.availableSeats,
-        }, {
-            new: true,
-        });
-
-        return res.status(201).json(booking);
+        return sendSuccess(res, 201, booking);
     } catch (error) {
-        res.status(500).json({ message: 'An error occurred while creating the booking.' });
+        return sendError(res, 500, error);
     }
 };
 
-// Get All Bookings. Learned from ChatGPT that this .populate method replaces the ObjectId with the actual data from the referenced collection.
 const getAllBookings = async (req, res) => {
     try {
-        const bookings = await Booking.find({ passenger: req.user._id })
+        const bookings = await Booking.find({ passenger: req.user.id })
             .populate('flight')
             .populate('passenger');
-
-        res.status(200).json(bookings);
+        return sendSuccess(res, 200, bookings);
     } catch (error) {
-        res.status(500).json({ message: 'An error occurred while fetching bookings.' });
+        return sendError(res, 500, error);
     }
 };
-// Get Booking by ID
+
 const getBookingById = async (req, res) => {
     try {
         const booking = await Booking.findById(req.params.bookingId)
             .populate('flight')
             .populate('passenger');
         if (!booking) {
-            return res.status(404).json({ message: 'Booking not found.' });
+            return sendError(res, 404, new Error('Booking not found.'));
         }
-        res.status(200).json(booking);
+        return sendSuccess(res, 200, booking);
     } catch (error) {
-        res.status(500).json({ message: 'An error occurred while fetching the booking.' });
-    }
-};
-
-// Update Booking information
-const updateBooking = async (req, res) => {
-    try {
-        const updatedBooking = await Booking.findByIdAndUpdate(req.params.bookingId, req.body, {
-            new: true,
-        });
-
-        if (!updatedBooking) {
-            return res.status(404).json({ message: 'Booking not found.' });
-        }
-        res.status(200).json(updatedBooking);
-    } catch (error) {
-        res.status(500).json({
-            message: 'An error occurred while updating the booking.',
-        });
-
+        return sendError(res, 500, error);
     }
 };
 
@@ -91,12 +72,11 @@ const deleteBooking = async (req, res) => {
         const booking = await Booking.findByIdAndDelete(req.params.bookingId);
 
         if (!booking) {
-            return res.status(404).json({ message: 'Booking not found.' });
+            return sendError(res, 404, new Error('Booking not found.'));
         }
-
-        res.status(200).json(booking);
+        return sendSuccess(res, 200, booking);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        return sendError(res, 500, error);
     }
 };
 
@@ -104,7 +84,6 @@ module.exports = {
     createBooking,
     getAllBookings,
     getBookingById,
-    updateBooking,
     deleteBooking,
 };
 
