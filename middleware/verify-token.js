@@ -9,8 +9,6 @@ function verifyToken(req, res, next) {
     
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
         if (err) {
-            console.log(err.name)
-            console.log(JSON.stringify(token, null,  2))
             return sendError(res, 403, new Error(
                 err.name === 'TokenExpiredError'
                     ? 'Login expired. Please, log in again.'
