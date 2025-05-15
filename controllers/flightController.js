@@ -13,7 +13,7 @@ const getAllflights = async (req, res) => {
 const getFlightById = async (req, res) => {
     try {
         const flight = await Flight.findById(req.params.flightId);
-        if (!flight) {
+        if (!flight) {  
             return sendError(res, 404, new Error('Flight not found'));
         }
         return sendSuccess(res, 200, flight);
@@ -86,11 +86,10 @@ const searchFlights = async (req, res) => {
         }
 
         const flights = await Flight.find(query);
-
         if (!flights.length) {
             return sendError(res, 404, new Error('No flights match your criteria.'));
         }
-
+        
         return sendSuccess(res, 200, flights);
     } catch (error) {
         return sendError(res, 500, error);
