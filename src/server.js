@@ -3,6 +3,7 @@ const cors = require('cors');
 const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
+const {globalErrorHandler} = require('./middleware/errorMiddleware');
 const cookieParser = require('cookie-parser');
 
 // MongoDB connection
@@ -75,6 +76,7 @@ app.use('/auth', authRoutes);
 app.use('/flights', flightRoutes);
 app.use(verifyToken);
 app.use('/bookings', bookingRoutes);
+app.use(globalErrorHandler);
 
 // Server
 const port = process.env.PORT || 3000;
