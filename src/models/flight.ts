@@ -1,6 +1,19 @@
-const mongoose = require('mongoose');
+import mongoose, { Schema, Document } from 'mongoose';
 
-const flightSchema = new mongoose.Schema({
+export interface IFlight extends Document {
+    flightNumber: String;
+    origin: String;
+    destination: String;
+    departureTime: Date;
+    arrivalTime: Date;
+    availableSeats: Number;
+    status: 'scheduled' | 'delayed' | 'canceled' | 'completed';
+    price: Number;
+    passengers: mongoose.Types.ObjectId[];
+    staff: mongoose.Types.ObjectId[];
+};
+
+const flightSchema: Schema = new mongoose.Schema({
     flightNumber: {
         type: String,
         required: true,
@@ -48,8 +61,8 @@ const flightSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
     }],
-}, { timestamps: true });
+}, {
+    timestamps: true,
+});
 
-const Flight = mongoose.model('Flight', flightSchema);
-
-module.exports = Flight;
+export default mongoose.model<IFlight>('Flight', flightSchema);

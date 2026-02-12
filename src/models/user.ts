@@ -48,16 +48,14 @@ const userSchema: Schema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'Booking',
     }],
-},
-    {
-        timestamps: true,
-        toJSON: {
-            transform: (doc, ret) => {
-                delete ret.password;
-                return ret;
-            },
+}, {
+    timestamps: true,
+    toJSON: {
+        transform: (doc, ret) => {
+            delete ret.password;
+            return ret;
         },
-    }
-);
+    },
+});
 
 export default mongoose.model<IUser>('User', userSchema);
