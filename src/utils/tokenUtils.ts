@@ -3,7 +3,7 @@ import { IUser } from '../models/user';
 
 export function generateAccessToken(user: IUser) {
     return jwt.sign({
-        id: user.id,
+        _id: user.id,
         username: user.username,
         firstName: user.firstName,
         lastName: user.lastName,
@@ -17,7 +17,7 @@ export function generateAccessToken(user: IUser) {
 
 export function generateRefreshToken(user: IUser) {
     return jwt.sign({
-        id: user.id,
+        _id: user.id,
         username: user.username,
         firstName: user.firstName,
         lastName: user.lastName,

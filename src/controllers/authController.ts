@@ -40,14 +40,12 @@ export const signup = async (req: Request, res: Response) => {
     });
 
     return sendSuccess(res, 201, {
-        user: {
-            id: user.id,
-            username: user.username,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            email: user.email,
-            role: user.role,
-        }
+        _id: user.id,
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
     });
 };
 
@@ -80,14 +78,12 @@ export const signin = async (req: Request, res: Response) => {
     });
 
     return sendSuccess(res, 200, {
-        user: {
-            id: user.id,
+            _id: user.id,
             username: user.username,
             firstName: user.firstName,
             lastName: user.lastName,
             email: user.email,
             role: user.role,
-        },
     });
 };
 
@@ -110,7 +106,7 @@ export const refreshToken = async (req: Request, res: Response) => {
             );
         }
 
-        const user = await User.findById(decoded.id);
+        const user = await User.findById(decoded._id);
 
         if (!user) {
             return sendError(res, 404, new Error('User not found.'));
@@ -135,14 +131,12 @@ export const refreshToken = async (req: Request, res: Response) => {
         });
 
         return sendSuccess(res, 200, {
-            user: {
-                id: user.id,
+                _id: user.id,
                 username: user.username,
                 firstName: user.firstName,
                 lastName: user.lastName,
                 email: user.email,
                 role: user.role,
-            },
         });
     });
 };
@@ -165,7 +159,7 @@ export const signout = (req: Request, res: Response) => {
 
 export const updateUser = async (req: Request, res: Response) => {
     const { username, firstName, lastName, email } = (req as any).body;
-    const userId = (req as any).user.id;
+    const userId = (req as any).user._id;
 
     const updatedUser = await User.findByIdAndUpdate(
         userId,

@@ -3,7 +3,7 @@ import mongoose, { Schema, Document, mongo } from 'mongoose';
 export interface IBooking extends Document {
     flight: mongoose.Types.ObjectId;
     passenger: mongoose.Types.ObjectId;
-    seatNumber: String;
+    seatNumber: string;
     status: 'confirmed' | 'canceled';
 };
 

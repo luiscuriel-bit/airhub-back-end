@@ -1,14 +1,14 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IFlight extends Document {
-    flightNumber: String;
-    origin: String;
-    destination: String;
+    flightNumber: string;
+    origin: string;
+    destination: string;
     departureTime: Date;
     arrivalTime: Date;
-    availableSeats: Number;
+    availableSeats: number;
     status: 'scheduled' | 'delayed' | 'canceled' | 'completed';
-    price: Number;
+    price: number;
     passengers: mongoose.Types.ObjectId[];
     staff: mongoose.Types.ObjectId[];
 };

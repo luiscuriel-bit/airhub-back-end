@@ -5,6 +5,8 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import { createServer } from 'http';
+import {Server} from 'socket.io'
 import { globalErrorHandler } from './middleware/errorMiddleware';
 
 // Routes
@@ -14,6 +16,26 @@ import bookingRoutes from './routes/bookingRoutes';
 import verifyToken from './middleware/verify-token';
 
 const app = express();
+const httpServer = createServer(app);
+
+const io = new Server(httpServer, {
+    cors: {
+        origin: process.env.ALLOWED_ORIGINS?.split(',') || [],
+        credentials: true,
+    },
+});
+
+io.on('connection', socket => {
+    if (process.env.NODE_ENV !== 'production'){
+        console.log('User connected to sockets:', socket.id);
+    };
+
+    socket.on('disconnect', () => {
+        if(process.env.NODE_ENV !== 'production'){
+            console.log('User disconnected from socket');
+        }
+    })
+})
 
 // MongoDB connection
 const connectDB = async (): Promise<void> => {
@@ -71,6 +93,8 @@ const corsOptions: cors.CorsOptions = {
     credentials: true,
 };
 
+app.set('io', io);
+
 // Middlewares
 app.use(cors(corsOptions));
 app.use(express.json());
@@ -87,8 +111,8 @@ app.use(globalErrorHandler);
 
 // Server
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
+httpServer.listen(port, () => {
     if (process.env.NODE_ENV !== 'production') {
-        console.log(`Server listening on port ${port}.`);
+        console.log(`Server listening on port ${port} with WebSockets enabled.`);
     }
 });

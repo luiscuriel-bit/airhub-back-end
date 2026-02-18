@@ -18,6 +18,9 @@ const getFlightById = async (req: Request, res: Response) => {
 const createFlight = async (req: Request, res: Response) => {
     const { flightNumber, origin, destination, departureTime, arrivalTime, availableSeats, status, price } = (req as any).body;
     const newFlight = await Flight.create({ flightNumber, origin, destination, departureTime, arrivalTime, availableSeats, status, price });
+
+    req.app.get('io').emit('flight:created', newFlight);
+
     return sendSuccess(res, 201, newFlight);
 };
 
@@ -29,15 +32,21 @@ const updateFlight = async (req: Request, res: Response) => {
     if (!updatedFlight) {
         return sendError(res, 404, new Error('Flight not found'));
     }
+
+    req.app.get('io').emit('flight:updated', updatedFlight);
+
     return sendSuccess(res, 200, updatedFlight);
 };
 
 const deleteFlight = async (req: Request, res: Response) => {
-    const deletedFlight = await Flight.findByIdAndDelete((req as any).params.flightId);
+    const id = (req as any).params.flightId;
+    const deletedFlight = await Flight.findByIdAndDelete(id);
 
     if (!deletedFlight) {
         return sendError(res, 404, new Error('Flight not found.'));
     }
+
+    req.app.get('io').emit('flight:deleted', id);
     return sendSuccess(res, 200, { message: 'Flight successfully deleted.' });
 };
 
@@ -45,7 +54,7 @@ const searchFlights = async (req: Request, res: Response) => {
     const query = { ...(req as any).body };
 
     if (query.departureStart || query.departureEnd) {
-        const departureQuery = {};
+        const departureQuery: any = {};
 
         if (query.departureStart) {
             const start = new Date(query.departureStart);

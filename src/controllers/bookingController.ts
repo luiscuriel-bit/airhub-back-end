@@ -22,16 +22,18 @@ const createBooking = async (req: Request, res: Response) => {
 
     const booking = await Booking.create({
         flight: flight._id,
-        passenger: (req as any).user.id,
+        passenger: (req as any).user._id,
         seatNumber: (flight.passengers.length + 1).toString(),
     });
 
-    flight.passengers.push((req as any).user.id);
+    flight.passengers.push((req as any).user._id);
     flight.availableSeats -= 1;
     await flight.save();
 
+    req.app.get('io').emit('flight:updated', flight);
+
     await User.findByIdAndUpdate(
-        (req as any).user.id,
+        (req as any).user._id,
         { $push: { bookings: booking._id } },
         { new: true }
     );
@@ -40,7 +42,7 @@ const createBooking = async (req: Request, res: Response) => {
 };
 
 const getAllBookings = async (req: Request, res: Response) => {
-    const bookings = await Booking.find({ passenger: (req as any).user.id })
+    const bookings = await Booking.find({ passenger: (req as any).user._id })
         .populate('flight')
         .populate('passenger');
     return sendSuccess(res, 200, bookings);
