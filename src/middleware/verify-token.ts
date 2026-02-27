@@ -1,13 +1,14 @@
-const jwt = require('jsonwebtoken');
-const { sendError } = require('../utils/responseHandler');
+import {Request, Response, NextFunction} from 'express';
+import jwt from 'jsonwebtoken';
+import {sendError} from '../utils/responseHandler';
 
-function verifyToken(req, res, next) {
+export default function verifyToken(req: Request, res: Response, next: NextFunction) {
     const token = req.cookies.accessToken;
     if (!token) {
         return sendError(res, 401, new Error('Access denied. No token provided.'));
     }
     
-    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    jwt.verify(token, process.env.JWT_SECRET as string, (err: any, decoded: any) => {
         if (err) {
             return sendError(res, 403, new Error(
                 err.name === 'TokenExpiredError'
@@ -15,9 +16,7 @@ function verifyToken(req, res, next) {
                     : 'Invalid token.'
             ));
         }
-        req.user = decoded; // Attach decoded user info to request
+        (req as any).user = decoded; // Attach decoded user info to request
         next();
     });
-}
-
-module.exports = verifyToken;
+};

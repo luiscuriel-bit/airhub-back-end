@@ -1,4 +1,11 @@
-const mongoose = require('mongoose');
+import mongoose, { Schema, Document, mongo } from 'mongoose';
+
+export interface IBooking extends Document {
+    flight: mongoose.Types.ObjectId;
+    passenger: mongoose.Types.ObjectId;
+    seatNumber: string;
+    status: 'confirmed' | 'canceled';
+};
 
 const bookingSchema = new mongoose.Schema({
     flight: {
@@ -21,8 +28,8 @@ const bookingSchema = new mongoose.Schema({
         enum: ['confirmed', 'canceled'],
         default: 'confirmed',
     },
-}, { timestamps: true });
+}, {
+    timestamps: true
+});
 
-const Booking = mongoose.model('Booking', bookingSchema);
-
-module.exports = Booking;
+export default mongoose.model<IBooking>('Booking', bookingSchema);

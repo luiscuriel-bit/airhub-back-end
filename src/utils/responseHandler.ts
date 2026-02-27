@@ -1,5 +1,6 @@
+import { Response } from 'express';
 
-const sendSuccess = (res, statusCode, data = null) => {
+export const sendSuccess = (res: Response, statusCode: number, data: any = null) => {
   return res.status(statusCode).json({
     success: true,
     data,
@@ -7,12 +8,10 @@ const sendSuccess = (res, statusCode, data = null) => {
   });
 };
 
-const sendError = (res, statusCode, error) => {
+export const sendError = (res: Response, statusCode: number, error: any) => {
   return res.status(statusCode).json({
     success: false,
     data: null,
     error: error.message || 'An unknown error occurred.',
   });
 };
-
-module.exports = { sendSuccess, sendError };
